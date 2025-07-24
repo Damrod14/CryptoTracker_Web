@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoTracker Web - Sistemas Distribuidos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Estilos CSS (combinados de tu archivo style.css) */
+        :root {
+            --primary-color: #1a1a2e;
+            --secondary-color: #16213e;
+            --accent-color: #0f3460;
+            --gold-color: #f39c12;
+            --green-color: #27ae60;
+            --red-color: #e74c3c;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --card-bg: rgba(255, 255, 255, 0.98);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 50%, var(--accent-color) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--gold-color);
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--gold-color), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-info {
+            text-align: right;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
+        }
+
+        .last-update {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-tabs {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            background: var(--card-bg);
+            color: var(--text-dark);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-tab:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--gold-color);
+        }
+
+        .nav-tab.active {
+            background: var(--gold-color);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--text-light);
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--gold-color), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-title p {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .crypto-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-top: 4px solid var(--gold-color);
+        }
+
+        .crypto-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .crypto-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .crypto-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--text-light); /* Fallback background */
+            border: 2px solid var(--gold-color);
+            object-fit: cover;
+        }
+
+        .crypto-info h3 {
+            color: var(--text-dark);
+            font-size: 1.2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .crypto-symbol {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .crypto-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-align: right;
+            margin-top: 1rem;
+        }
+
+        .form-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: var(--text-dark);
+            box-shadow: var(--shadow);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            width: 100%;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--gold-color);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, var(--gold-color), var(--green-color));
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            height: 50px;
+            align-self: end;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .crypto-select-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+            background: #fff;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+        }
+
+        .crypto-select-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 5px;
+            border-radius: 6px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .crypto-select-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .crypto-select-item img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .crypto-select-item label {
+            font-weight: 500;
+            flex-grow: 1;
+        }
+
+        .crypto-select-item input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1rem;
+            margin-top: 2rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dark);
+            box-shadow: var(--shadow);
+        }
+        
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+            color: #666;
+        }
+
+        .chart-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: var(--gold-color);
+        }
+
+        .loading, .error-message {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+        }
+        
+        .error-message {
+            color: var(--red-color);
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 4px solid rgba(243, 156, 18, 0.3);
+            border-top: 4px solid var(--gold-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Estilos para la sección "Todas las Cryptos" --- */
+        .all-charts-wrapper {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .all-charts-wrapper > img {
+            max-width: 65%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .crypto-labels-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .crypto-label-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-align: center;
+        }
+
+        .crypto-label-item img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--gold-color);
+            object-fit: cover;
+        }
+
+        .crypto-label-item span {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .nav-tabs {
+                justify-content: center;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .all-charts-wrapper {
+                flex-direction: column;
+            }
+            .all-charts-wrapper > img {
+                max-width: 100%;
+                order: 2;
+            }
+            .crypto-labels-column {
+                flex-direction: row;
+                flex-wrap: wrap;
+                height: auto;
+                order: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fab fa-bitcoin"></i>
+                <div>
+                    <h1>CryptoTracker Web</h1>
+                    <p style="font-size: 0.8rem; opacity: 0.8;">Proyecto Final - Sistemas Distribuidos</p>
+                </div>
+            </div>
+            <div class="header-info">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Servicios en vivo</span>
+                </div>
+                <div class="last-update" id="lastUpdate">Última actualización: --:--</div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav-tabs">
+        <div class="nav-tab active" data-section="prices"><i class="fas fa-coins"></i> Precios Actuales</div>
+        <div class="nav-tab" data-section="single-chart"><i class="fas fa-chart-line"></i> Gráfico Individual</div>
+        <div class="nav-tab" data-section="all-charts"><i class="fas fa-chart-area"></i> Todas las Cryptos</div>
+        <div class="nav-tab" data-section="compare"><i class="fas fa-balance-scale"></i> Comparar</div>
+        <div class="nav-tab" data-section="regression"><i class="fas fa-calculator"></i> Regresión Lineal</div>
+    </nav>
+
+    <div class="container">
+        <section id="prices" class="section active">
+            <div class="section-title">
+                <h2>Precios en Tiempo Real</h2>
+                <p>Las 10 principales criptomonedas por capitalización de mercado</p>
+            </div>
+            <div id="crypto-container" class="crypto-grid">
+                </div>
+        </section>
+
+        <section id="single-chart" class="section">
+            <div class="section-title">
+                <h2>Gráfico de Variación Individual</h2>
+                <p>Analiza la evolución de precio de una criptomoneda específica</p>
+            </div>
+            <div class="form-container">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Criptomoneda:</label>
+                        <div id="single-crypto-container" class="crypto-select-container">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="single-hours">Horas (1-24):</label>
+                        <input type="number" id="single-hours" min="1" max="24" value="24">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn" onclick="generateSingleChart()"><i class="fas fa-chart-line"></i> Generar Gráfico</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container" id="single-chart-result">
+                <div class="chart-placeholder"><i class="fas fa-chart-line"></i><h3>Selecciona una criptomoneda y genera el gráfico</h3></div>
+            </div>
+        </section>
+
+        <section id="all-charts" class="section">
+            <div class="section-title">
+                <h2>Gráficos de Todas las Criptomonedas</h2>
+                <p>Visualiza la variación de todas las criptomonedas simultáneamente</p>
+            </div>
+             <div class="form-container">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="all-hours">Horas (1-24):</label>
+                        <input type="number" id="all-hours" min="1" max="24" value="24">
+                    </div>
+                    <div class="form-group">
+                         <button class="btn" onclick="generateAllCharts()"><i class="fas fa-chart-area"></i> Generar Gráficos</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container" id="all-charts-result">
+                <div class="chart-placeholder"><i class="fas fa-chart-area"></i><h3>Haz clic en "Generar Gráficos"</h3></div>
+            </div>
+        </section>
+
+        <section id="compare" class="section">
+            <div class="section-title">
+                <h2>Comparación de Criptomonedas</h2>
+                <p>Superpone gráficos de múltiples criptomonedas para comparar tendencias</p>
+            </div>
+            <div class="form-container">
+                <div class="form-row">
+                    <div class="form-group" style="grid-column: 1 / span 2;">
+                        <label>Criptomonedas:</label>
+                        <div id="compare-cryptos-container" class="crypto-select-container">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="compare-start">Hora de inicio (0-23):</label>
+                        <input type="number" id="compare-start" min="0" max="23" value="7">
+                    </div>
+                    <div class="form-group">
+                        <label for="compare-end">Hora de fin (1-24):</label>
+                        <input type="number" id="compare-end" min="1" max="24" value="9">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn" onclick="generateCompareChart()"><i class="fas fa-balance-scale"></i> Comparar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container" id="compare-chart-result">
+                 <div class="chart-placeholder"><i class="fas fa-balance-scale"></i><h3>Selecciona criptomonedas y rango horario</h3></div>
+            </div>
+        </section>
+
+        <section id="regression" class="section">
+             <div class="section-title">
+                <h2>Análisis de Regresión Lineal</h2>
+                <p>Calcula la ecuación de regresión lineal y tendencia de precio</p>
+            </div>
+            <div class="form-container">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Criptomoneda:</label>
+                        <div id="regression-crypto-container" class="crypto-select-container">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="regression-start">Hora de inicio (0-23):</label>
+                        <input type="number" id="regression-start" min="0" max="23" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="regression-end">Hora de fin (1-24):</label>
+                        <input type="number" id="regression-end" min="1" max="24" value="12">
+                    </div>
+                     <div class="form-group">
+                        <button class="btn" onclick="generateRegressionChart()"><i class="fas fa-calculator"></i> Calcular Regresión</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container" id="regression-chart-result">
+                <div class="chart-placeholder"><i class="fas fa-calculator"></i><h3>Selecciona parámetros y genera la regresión</h3></div>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 CryptoTracker Web - Proyecto Final de Sistemas Distribuidos</p>
+    </footer>
+
+    <script>
+        // --- CONFIGURACIÓN GLOBAL ---
+        const API_BASE_URL = "http://34.36.237.99";
+        const CHART_API_BASE_URL = "http://34.36.237.99";
+        let cryptoData = [];
+        const cryptoMapping = {
+            'Bitcoin': 'bitcoin', 'Ethereum': 'ethereum', 'XRP': 'ripple',
+            'Solana': 'solana', 'TRON': 'tron', 'Dogecoin': 'dogecoin',
+            'Cardano': 'cardano', 'Hyperliquid': 'hyperliquid', 
+            'Bitcoin Cash': 'bitcoin_cash', 'Chainlink': 'chainlink'
+        };
+
+        // Define el orden de los gráficos para la sección "Todas las Cryptos"
+        const leftColumnOrder = ['Dogecoin', 'Solana', 'Hyperliquid', 'Chainlink', 'TRON'];
+        const rightColumnOrder = ['Ethereum', 'XRP', 'Bitcoin', 'Bitcoin Cash', 'Cardano'];
+
+
+        // --- LÓGICA DE NAVEGACIÓN ---
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab, .section').forEach(el => el.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.getAttribute('data-section')).classList.add('active');
+            });
+        });
+        
+        // --- FUNCIONES AUXILIARES ---
+        function getCryptoIconUrl(crypto, size = '128') {
+            if (crypto.name === 'Hyperliquid') {
+                return 'https://avatars.githubusercontent.com/u/129421375?s=200&v=4';
+            }
+            const symbol = crypto.symbol.toLowerCase();
+            const sizePath = size === '128' ? `128/color` : `32/color`;
+            return `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/${sizePath}/${symbol}.png`;
+        }
+
+        // --- FUNCIÓN CENTRAL PARA MOSTRAR GRÁFICOS ---
+        async function displayChart(endpointUrl, containerId, loadingMessage) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>${loadingMessage}</p>
+                </div>`;
+
+            try {
+                const response = await fetch(endpointUrl, { mode: 'cors' });
+                if (!response.ok) {
+                    throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+                }
+                
+                const imageBlob = await response.blob();
+                if (imageBlob.size === 0) {
+                     throw new Error("La respuesta del servidor está vacía. Puede que no haya datos para el rango seleccionado.");
+                }
+                
+                const imageUrl = URL.createObjectURL(imageBlob);
+
+                if (containerId === 'all-charts-result') {
+                    const findCrypto = (name) => cryptoData.find(c => c.name === name);
+                    const createLabelHtml = (crypto) => {
+                        if (!crypto) return '<div></div>';
+                        const iconUrl = getCryptoIconUrl(crypto, '32');
+                        const fallbackIconUrl = `https://via.placeholder.com/32/ecf0f1/2c3e50?text=${crypto.symbol.substring(0,2)}`;
+                        return `
+                            <div class="crypto-label-item">
+                                <img src="${iconUrl}" alt="" onerror="this.src='${fallbackIconUrl}'">
+                                <span>${crypto.name}</span>
+                            </div>
+                        `;
+                    };
+
+                    const leftLabelsHtml = leftColumnOrder.map(name => createLabelHtml(findCrypto(name))).join('');
+                    const rightLabelsHtml = rightColumnOrder.map(name => createLabelHtml(findCrypto(name))).join('');
+
+                    container.innerHTML = `
+                        <div class="all-charts-wrapper">
+                            <div class="crypto-labels-column">${leftLabelsHtml}</div>
+                            <img src="${imageUrl}" alt="Gráfico de todas las criptomonedas" />
+                            <div class="crypto-labels-column">${rightLabelsHtml}</div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `<img src="${imageUrl}" alt="Gráfico generado" />`;
+                }
+
+            } catch (error) {
+                console.error('Error al generar el gráfico:', error);
+                container.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        <h3>Error al generar gráfico</h3>
+                        <p>${error.message}</p>
+                        <p style="font-size: 0.8rem; opacity: 0.7;">URL: ${endpointUrl}</p>
+                    </div>`;
+            }
+        }
+        
+        // --- FUNCIONES PARA CADA SECCIÓN ---
+
+        // 1. OBTENER Y MOSTRAR PRECIOS
+        async function fetchCryptoPrices() {
+            const cryptoContainer = document.getElementById('crypto-container');
+            try {
+                const response = await fetch(`${API_BASE_URL}/precios`);
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                cryptoData = await response.json();
+                
+                document.getElementById('lastUpdate').textContent = `Última actualización: ${new Date().toLocaleTimeString()}`;
+                cryptoContainer.innerHTML = cryptoData.map(crypto => {
+                    const iconUrl = getCryptoIconUrl(crypto, '128');
+                    const fallbackIconUrl = `https://via.placeholder.com/50/1a1a2e/f39c12?text=${crypto.symbol.substring(0,2)}`;
+                    return `
+                    <div class="crypto-card">
+                        <div class="crypto-header">
+                            <img class="crypto-icon" src="${iconUrl}" alt="${crypto.name} logo" onerror="this.src='${fallbackIconUrl}'">
+                            <div class="crypto-info">
+                                <h3>${crypto.name}</h3>
+                                <div class="crypto-symbol">${crypto.symbol}</div>
+                            </div>
+                        </div>
+                        <div class="crypto-price">$${crypto.price.toFixed(2)}</div>
+                    </div>`
+                }).join('');
+                
+                populateCryptoSelectors();
+            } catch (error) {
+                cryptoContainer.innerHTML = `<div class="error-message" style="grid-column: 1 / -1;"><i class="fas fa-exclamation-triangle fa-2x"></i><h3>Error al cargar datos</h3><p>${error.message}</p></div>`;
+            }
+        }
+
+        // 2. GENERAR GRÁFICO INDIVIDUAL
+        function generateSingleChart() {
+            const selectedInput = document.querySelector('input[name="single_crypto"]:checked');
+            if (!selectedInput) { alert('Por favor selecciona una criptomoneda'); return; }
+            const crypto = selectedInput.value;
+            const hours = document.getElementById('single-hours').value;
+            const url = `${CHART_API_BASE_URL}/grafico?crypto=${crypto}&horas=${hours}`;
+            displayChart(url, 'single-chart-result', `Generando gráfico de ${crypto}...`);
+        }
+
+        // 3. GENERAR TODOS LOS GRÁFICOS
+        function generateAllCharts() {
+            const hours = document.getElementById('all-hours').value;
+            const url = `${CHART_API_BASE_URL}/graficos-todas?horas=${hours}`;
+            displayChart(url, 'all-charts-result', 'Generando gráficos para todas las criptomonedas...');
+        }
+        
+        // 4. GENERAR GRÁFICO DE COMPARACIÓN
+        function generateCompareChart() {
+            const cryptos = Array.from(document.querySelectorAll('input[name="compare_crypto"]:checked')).map(cb => cb.value);
+            if (cryptos.length === 0) { alert('Selecciona al menos una criptomoneda'); return; }
+
+            const startHour = document.getElementById('compare-start').value;
+            const endHour = document.getElementById('compare-end').value;
+            if (parseInt(endHour) <= parseInt(startHour)) { alert('La hora de fin debe ser mayor que la de inicio'); return; }
+
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+    
+            const fechaInicio = `${year}-${month}-${day}T${String(startHour).padStart(2, '0')}:00`;
+            const fechaFin = `${year}-${month}-${day}T${String(endHour).padStart(2, '0')}:00`;
+
+            const url = `${CHART_API_BASE_URL}/graficoCompara?cryptos=${cryptos.join(',')}&inicio=${fechaInicio}&fin=${fechaFin}`;
+            displayChart(url, 'compare-chart-result', `Comparando ${cryptos.join(', ')}...`);
+        }
+        
+        // 5. GENERAR GRÁFICO DE REGRESIÓN
+        function generateRegressionChart() {
+            const selectedInput = document.querySelector('input[name="regression_crypto"]:checked');
+            if (!selectedInput) { alert('Por favor selecciona una criptomoneda'); return; }
+            const crypto = selectedInput.value;
+            
+            const startHour = document.getElementById('regression-start').value;
+            const endHour = document.getElementById('regression-end').value;
+            if (parseInt(endHour) <= parseInt(startHour)) { alert('La hora de fin debe ser mayor que la de inicio'); return; }
+            
+            const url = `${CHART_API_BASE_URL}/regresion?crypto=${crypto}&inicio=${startHour}&fin=${endHour}`;
+            displayChart(url, 'regression-chart-result', `Calculando regresión para ${crypto}...`);
+        }
+        
+        // --- FUNCIONES DE INICIALIZACIÓN ---
+        function populateCryptoSelectors() {
+            const singleContainer = document.getElementById('single-crypto-container');
+            const compareContainer = document.getElementById('compare-cryptos-container');
+            const regressionContainer = document.getElementById('regression-crypto-container');
+
+            const cryptoHtml = cryptoData.map((crypto, index) => {
+                const cryptoId = cryptoMapping[crypto.name] || '';
+                if (!cryptoId) return ''; 
+
+                const iconUrl = getCryptoIconUrl(crypto, '32');
+                const fallbackIconUrl = `https://via.placeholder.com/28/1a1a2e/f39c12?text=${crypto.symbol.substring(0,2)}`;
+                const commonHtml = `
+                    <img src="${iconUrl}" alt="" onerror="this.src='${fallbackIconUrl}'">
+                    <label for="${cryptoId}">${crypto.name}</label>`;
+                
+                return {
+                    single: `<div class="crypto-select-item"><input type="radio" id="single_${cryptoId}" name="single_crypto" value="${cryptoId}" ${index === 0 ? 'checked' : ''}>${commonHtml.replace('for="', `for="single_`)}</div>`,
+                    compare: `<div class="crypto-select-item"><input type="checkbox" id="compare_${cryptoId}" name="compare_crypto" value="${cryptoId}">${commonHtml.replace('for="', `for="compare_`)}</div>`,
+                    regression: `<div class="crypto-select-item"><input type="radio" id="regression_${cryptoId}" name="regression_crypto" value="${cryptoId}" ${index === 0 ? 'checked' : ''}>${commonHtml.replace('for="', `for="regression_`)}</div>`
+                };
+            }).filter(Boolean);
+
+            singleContainer.innerHTML = cryptoHtml.map(item => item.single).join('');
+            compareContainer.innerHTML = cryptoHtml.map(item => item.compare).join('');
+            regressionContainer.innerHTML = cryptoHtml.map(item => item.regression).join('');
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchCryptoPrices();
+            setInterval(fetchCryptoPrices, 60000); 
+        });
+    </script>
+</body>
+</html>
