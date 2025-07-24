@@ -47,13 +47,13 @@ Este proyecto está dividido en **microservicios**, con backend en **Java** y fr
 ## Diseño Página Web
 
 <h3> Dashboard Principal</h3>
-<img src="/assets/img/DashboardCrypto.png" alt="Login" width="600"/>
+<img src="/assets/img/DashboardCrypto.jpeg" alt="Login" width="600"/>
 
 <h3> Gráficas Comparativas</h3>
-<img src="/assets/img/GraficasCrypto.png" alt="Página Principal" width="600"/>
+<img src="/assets/img/GraficasCrypto.jpeg" alt="Página Principal" width="600"/>
 
 <h3> Costo Cryptomonedas</h3>
-<img src="/assets/img/CostoCryptos.png" alt="barra de navegación" width="600"/>
+<img src="/assets/img/CostoCryptos.jpeg" alt="barra de navegación" width="600"/>
 
 ---
 ## Despliegue
