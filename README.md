@@ -44,7 +44,18 @@ Este proyecto está dividido en **microservicios**, con backend en **Java** y fr
 - Despliegue modular por microservicio
 
 ---
+## Diseño Página Web
 
+<h3> Dashboard Principal</h3>
+<img src="/assets/img/DashboardCrypto.png" alt="Login" width="600"/>
+
+<h3> Gráficas Comparativas</h3>
+<img src="/assets/img/GraficasCrypto.png" alt="Página Principal" width="600"/>
+
+<h3> Costo Cryptomonedas</h3>
+<img src="/assets/img/CostoCryptos.png" alt="barra de navegación" width="600"/>
+
+---
 ## Despliegue
 
 Cada microservicio se despliega en su propia instancia de GCP:
